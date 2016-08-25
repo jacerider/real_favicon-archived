@@ -1,0 +1,14 @@
+{
+  "name": "drupal/real_favicon",
+  "type": "drupal-module",
+  "description": "Favicon implementation for all platforms utilizing http://realfavicongenerator.net",
+  "keywords": ["Drupal"],
+  "license": "GPL-2.0+",
+  "homepage": "https://www.drupal.org/project/real_favicon",
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/real_favicon",
+    "source": "http://cgit.drupalcode.org/real_favicon"
+  },
+  "require": { }
+}

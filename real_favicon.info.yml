@@ -1,0 +1,5 @@
+name: Real Favicon
+type: module
+description: Favicon implementation for all platforms utilizing http://realfavicongenerator.net
+core: 8.x
+package: JaceRider
