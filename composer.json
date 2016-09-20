@@ -1,14 +1,20 @@
 {
-  "name": "drupal/real_favicon",
+  "name": "jacerider/real_favicon",
+  "description": "A favicon generator for all platforms utilizing http://realfavicongenerator.net",
   "type": "drupal-module",
-  "description": "Favicon implementation for all platforms utilizing http://realfavicongenerator.net",
-  "keywords": ["Drupal"],
   "license": "GPL-2.0+",
-  "homepage": "https://www.drupal.org/project/real_favicon",
-  "minimum-stability": "dev",
+  "homepage": "https://github.com/jacerider/real_favicon",
+  "authors": [
+    {
+      "name": "Cyle Carlson (JaceRider)",
+      "email": "jacerider@gmail.com",
+      "role": "Maintainer"
+    }
+  ],
   "support": {
-    "issues": "https://www.drupal.org/project/issues/real_favicon",
-    "source": "http://cgit.drupalcode.org/real_favicon"
+    "issues": "https://github.com/jacerider/real_favicon/issues",
+    "source": "https://github.com/jacerider/real_favicon"
   },
+  "minimum-stability": "dev",
   "require": { }
 }
