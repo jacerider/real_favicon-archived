@@ -4,6 +4,7 @@ namespace Drupal\real_favicon\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Component\Serialization\Json;
 
 /**
  * Defines the Favicon entity.
@@ -55,6 +56,13 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
   protected $label;
 
   /**
+   * The manifest of this package.
+   *
+   * @var array
+   */
+  protected $manifest = [];
+
+  /**
    * The folder where Real Favicons exist.
    */
   protected $directory = 'public://favicon';
@@ -71,11 +79,50 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
   }
 
   /**
-   * Set the tags from string.
+   * Get the tags as string.
    */
   public function getTagsAsString() {
     $tags = $this->get('tags');
     return $tags ? implode(PHP_EOL, $tags) : '';
+  }
+
+  /**
+   * Get the tags.
+   */
+  public function getTags() {
+    return $this->get('tags');
+  }
+
+  /**
+   * Get the manifest.
+   */
+  public function getManifest() {
+    if (empty($this->manifest)) {
+      $this->manifest = [];
+      $path = $this->getDirectory() . '/manifest.json';
+      if (file_exists($path)) {
+        $data = file_get_contents($path);
+        $this->manifest = Json::decode($data);
+      }
+    }
+    return $this->manifest;
+  }
+
+  /**
+   * Get the largest manifest image.
+   */
+  public function getManifestLargeImage() {
+    $image = '';
+    if ($manifest = $this->getManifest()) {
+      $size = 0;
+      foreach ($manifest['icons'] as $icon) {
+        $icon_size = explode('x', $icon['sizes']);
+        if ($icon_size[0] > $size) {
+          $image = $this->getDirectory() . $icon['src'];
+        }
+      }
+    }
+    return $image;
   }
 
   /**
