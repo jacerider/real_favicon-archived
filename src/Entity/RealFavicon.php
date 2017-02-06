@@ -95,14 +95,18 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
     return unserialize(gzuncompress(stripslashes(base64_decode(strtr($data, '-_,', '+/=')))));
   }
 
-  public function getThumbnail() {
-    return $this->getDirectory() . '/favicon-16x16.png';
+  /**
+   * Get a favicon image.
+   */
+  public function getThumbnail($image_name = 'favicon-16x16.png') {
+    return $this->getDirectory() . '/' . $image_name;
   }
 
   /**
    * Return the location where Iconifys exist.
    *
    * @return [string]
+   *   The directory path.
    */
   protected function getDirectory() {
     return $this->directory . '/' . $this->id();
