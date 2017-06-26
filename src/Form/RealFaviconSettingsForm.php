@@ -36,7 +36,7 @@ class RealFaviconSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * Defines the settings form for Eventbrite Event entities.
+   * Defines the settings form for Real Favicon entities.
    *
    * @param array $form
    *   An associative array containing the structure of the form.
