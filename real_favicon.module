@@ -6,7 +6,6 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\real_favicon\Entity\RealFavicon;
 
 /**
  * Implements hook_help().
@@ -60,7 +59,23 @@ function real_favicon_page_attachments_alter(array &$attachments) {
           'tags' => $realFaviconManager->getCacheTags(),
         ],
       ],
-      'real_favicon'
+      'real_favicon',
     ];
   }
+}
+
+/**
+ * Load favicon by theme.
+ *
+ * @param string $theme_id
+ *   The theme id.
+ *
+ * @return \Drupal\real_favicon\Entity\RealFavicon|null
+ *   The real favicon entity.
+ */
+function real_favicon_load_by_theme($theme_id = NULL) {
+  if (empty($active_theme)) {
+    $active_theme = \Drupal::theme()->getActiveTheme()->getName();
+  }
+  return \Drupal::service('real_favicon.manager')->loadFavicon($active_theme);
 }
