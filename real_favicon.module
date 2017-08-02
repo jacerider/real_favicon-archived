@@ -64,17 +64,3 @@ function real_favicon_page_attachments_alter(array &$attachments) {
     ];
   }
 }
-
-/**
- * Load favicon by theme.
- */
-function real_favicon_load_by_theme($active_theme = NULL) {
-  if (empty($active_theme)) {
-    $active_theme = \Drupal::theme()->getActiveTheme()->getName();
-  }
-  $favicon_themes = \Drupal::config('real_favicon.settings')->get('themes');
-  if (isset($favicon_themes[$active_theme])) {
-    return RealFavicon::load($favicon_themes[$active_theme]);
-  }
-  return FALSE;
-}
