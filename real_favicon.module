@@ -28,8 +28,10 @@ function real_favicon_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_page_attachments_alter().
  */
 function real_favicon_page_attachments_alter(array &$attachments) {
-  if ($real_favicon = real_favicon_load_by_theme()) {
-    $tags = $real_favicon->getValidTagsAsString();
+  $theme = \Drupal::theme()->getActiveTheme()->getName();
+  $realFaviconManager = \Drupal::service('real_favicon.manager');
+
+  if ($tags = $realFaviconManager->getTags($theme)) {
     // Remove default favicon from html_head_link.
     if (!empty($attachments['#attached']['html_head_link'])) {
       foreach ($attachments['#attached']['html_head_link'] as $i => $item) {
@@ -53,7 +55,10 @@ function real_favicon_page_attachments_alter(array &$attachments) {
       [
         '#type' => 'markup',
         '#markup' => $tags,
-        '#allowed_tags' => ['link', 'meta']
+        '#allowed_tags' => ['link', 'meta'],
+        '#cache' => [
+          'tags' => $realFaviconManager->getCacheTags(),
+        ],
       ],
       'real_favicon'
     ];

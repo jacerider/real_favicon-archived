@@ -1,0 +1,5 @@
+services:
+  real_favicon.manager:
+    class: Drupal\real_favicon\RealFaviconManager
+    arguments: ['@entity_type.manager', '@config.factory', '@cache.data']
+
