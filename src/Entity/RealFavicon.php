@@ -122,6 +122,10 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
         }
       }
     }
+    else {
+      // New version of real favicon do not generate a manifest.
+      return $this->getDirectory() . '/apple-touch-icon.png';
+    }
     return $image;
   }
 
