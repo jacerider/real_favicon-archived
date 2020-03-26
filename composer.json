@@ -15,6 +15,5 @@
     "issues": "https://github.com/jacerider/real_favicon/issues",
     "source": "https://github.com/jacerider/real_favicon"
   },
-  "minimum-stability": "dev",
-  "require": { }
+  "minimum-stability": "dev"
 }

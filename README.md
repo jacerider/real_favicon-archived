@@ -1,3 +1,3 @@
 # Real Favicon
-##### Favicon implementation for all platforms utilizing http://realfavicongenerator.net.
 
+Favicon implementation utilizing [https://realfavicongenerator.net](https://realfavicongenerator.net).
