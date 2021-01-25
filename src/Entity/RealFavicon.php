@@ -5,6 +5,8 @@ namespace Drupal\real_favicon\Entity;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Entity\EntityMalformedException;
+use Drupal\Core\File\FileSystemInterface;
 
 /**
  * Defines the Favicon entity.
@@ -29,6 +31,12 @@ use Drupal\Component\Serialization\Json;
  *     "id" = "id",
  *     "label" = "label",
  *     "uuid" = "uuid"
+ *   },
+ *   config_export = {
+ *     "id",
+ *     "label",
+ *     "tags",
+ *     "archive",
  *   },
  *   links = {
  *     "canonical" = "/admin/structure/real-favicon/{real_favicon}",
@@ -64,6 +72,8 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
 
   /**
    * The folder where Real Favicons exist.
+   *
+   * @var string
    */
   protected $directory = 'public://favicon';
 
@@ -79,7 +89,7 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
   }
 
   /**
-   * Get the tags as string.
+   * {@inheritDoc}
    */
   public function getTagsAsString() {
     $tags = $this->get('tags');
@@ -130,10 +140,10 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
   }
 
   /**
-   * Set the archive as base64 encoded string.
+   * {@inheritDoc}
    */
   public function setArchive($zip_path) {
-    $data = strtr(base64_encode(addslashes(gzcompress(serialize(file_get_contents($zip_path)),9))), '+/=', '-_,');
+    $data = strtr(base64_encode(addslashes(gzcompress(serialize(file_get_contents($zip_path)), 9))), '+/=', '-_,');
     $parts = str_split($data, 200000);
     $this->set('archive', $parts);
   }
@@ -156,10 +166,10 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
   /**
    * Return the location where Iconifys exist.
    *
-   * @return [string]
+   * @return string
    *   The directory path.
    */
-  protected function getDirectory() {
+  public function getDirectory() {
     return $this->directory . '/' . $this->id();
   }
 
@@ -172,6 +182,7 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
     if (!$this->isNew()) {
       $original = $storage->loadUnchanged($this->getOriginalId());
     }
+    /** @var \Drupal\real_favicon\Entity\RealFaviconInterface $original */
 
     if (is_string($this->get('tags'))) {
       $this->setTagsAsString($this->get('tags'));
@@ -190,8 +201,11 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
    */
   public static function preDelete(EntityStorageInterface $storage, array $entities) {
     parent::preDelete($storage, $entities);
+    /** @var \Drupal\Core\File\FileSystemInterface $file_system */
+    $file_system = \Drupal::service('file_system');
     foreach ($entities as $entity) {
-      file_unmanaged_delete_recursive($entity->getDirectory());
+      /** @var \Drupal\real_favicon\Entity\RealFaviconInterface $entity */
+      $file_system->deleteRecursive($entity->getDirectory());
       // Clean up empty directory. Will fail silently if it is not empty.
       @rmdir($entity->directory);
     }
@@ -210,32 +224,42 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
   /**
    * Properly extract and store an IcoMoon zip file.
    *
-   * @param [string] $zip_path
+   * @param string $zip_path
    *   The absolute path to the zip file.
    */
   public function archiveExtract($zip_path) {
-    $archiver = archiver_get_archiver($zip_path);
+    /** @var \Drupal\Core\File\FileSystemInterface $file_system */
+    $file_system = \Drupal::service('file_system');
+    /** @var \Drupal\Core\Archiver\ArchiverManager $archiver_manager */
+    $archiver_manager = \Drupal::service('plugin.manager.archiver');
+    $archiver = $archiver_manager->getInstance(['filepath' => $zip_path]);
     if (!$archiver) {
-      throw new Exception(t('Cannot extract %file, not a valid archive.', array('%file' => $zip_path)));
+      throw new \Exception(t('Cannot extract %file, not a valid archive.', ['%file' => $zip_path]));
     }
 
     $directory = $this->getDirectory();
-    file_unmanaged_delete_recursive($directory);
-    file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+    $file_system->deleteRecursive($directory);
+    $file_system->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
     $archiver->extract($directory);
 
-    drupal_set_message(t('Real Favicon package has been successfully %op.', ['%op' => ($this->isNew() ? t('updated') : t('added'))]));
+    \Drupal::messenger()->addMessage(t('Real Favicon package has been successfully %op.', ['%op' => ($this->isNew() ? t('updated') : t('added'))]));
   }
 
+  /**
+   * Get valid tags as strings.
+   */
   public function getValidTagsAsString() {
     return implode(PHP_EOL, $this->getValidTags()) . PHP_EOL;
   }
 
+  /**
+   * Get valid tags.
+   */
   public function getValidTags() {
     $base_path = base_path();
     $html = $this->getTagsAsString();
-    $found = array();
-    $missing = array();
+    $found = [];
+    $missing = [];
 
     $dom = new \DOMDocument();
     $dom->loadHTML($html);
@@ -283,6 +307,12 @@ class RealFavicon extends ConfigEntityBase implements RealFaviconInterface {
     return $found;
   }
 
+  /**
+   * Normalize path.
+   *
+   * @return string
+   *   The normalized path.
+   */
   protected function normalizePath($file_path) {
     return file_url_transform_relative(file_create_url($this->getDirectory() . $file_path));
   }

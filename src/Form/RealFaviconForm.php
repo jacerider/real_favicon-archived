@@ -2,13 +2,14 @@
 
 namespace Drupal\real_favicon\Form;
 
+use Drupal\Component\Utility\Environment;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Class RealFaviconForm.
+ * Class real favicon form.
  *
- * @package Drupal\real_favicon\Form
+ * @package Drupal\entity\Form
  */
 class RealFaviconForm extends EntityForm {
 
@@ -18,50 +19,51 @@ class RealFaviconForm extends EntityForm {
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
 
-    $real_favicon = $this->entity;
+    /** @var \Drupal\entity\Entity\RealFaviconInterface $entity */
+    $entity = $this->entity;
     $form['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Label'),
       '#maxlength' => 255,
-      '#default_value' => $real_favicon->label(),
+      '#default_value' => $entity->label(),
       '#description' => $this->t("Label for the Favicon."),
       '#required' => TRUE,
     ];
 
     $form['id'] = [
       '#type' => 'machine_name',
-      '#default_value' => $real_favicon->id(),
+      '#default_value' => $entity->id(),
       '#machine_name' => [
         'exists' => '\Drupal\real_favicon\Entity\RealFavicon::load',
         'replace_pattern' => '[^a-z0-9-]+',
         'replace' => '-',
       ],
-      '#disabled' => !$real_favicon->isNew(),
+      '#disabled' => !$entity->isNew(),
     ];
 
     $form['tags'] = [
       '#type' => 'textarea',
       '#title' => $this->t('Tags'),
-      '#default_value' => $real_favicon->getTagsAsString(),
+      '#default_value' => $entity->getTagsAsString(),
       '#description' => t('Paste the code provided by <a href="@url" target="_blank">@url</a>. Make sure each link is on a separate line. It is fine to paste links with paths like "/apple-touch-icon-57x57.png" as these will be converted to the correct paths automatically.', ['@url' => 'http://realfavicongenerator.net/']),
       '#required' => TRUE,
     ];
 
-    $validators = array(
-      'file_validate_extensions' => array('zip'),
-      'file_validate_size' => array(file_upload_max_size()),
-    );
-    $form['file'] = array(
+    $validators = [
+      'file_validate_extensions' => ['zip'],
+      'file_validate_size' => [Environment::getUploadMaxSize()],
+    ];
+    $form['file'] = [
       '#type' => 'file',
       '#title' => t('Upload a zip file from realfavicongenerator.net to install'),
-      '#description' => array(
+      '#description' => [
         '#theme' => 'file_upload_help',
-        '#description' => t('For example: %filename from your local computer. This only needs to be done once.', array('%filename' => 'favicons.zip')),
+        '#description' => t('For example: %filename from your local computer. This only needs to be done once.', ['%filename' => 'favicons.zip']),
         '#upload_validators' => $validators,
-      ),
+      ],
       '#size' => 50,
       '#upload_validators' => $validators,
-    );
+    ];
 
     return $form;
   }
@@ -85,34 +87,35 @@ class RealFaviconForm extends EntityForm {
    * {@inheritdoc}
    */
   public function save(array $form, FormStateInterface $form_state) {
-    $real_favicon = $this->entity;
+    /** @var \Drupal\entity\Entity\RealFaviconInterface $entity */
+    $entity = $this->entity;
 
     if ($this->file) {
       try {
         $zip_path = $this->file->getFileUri();
-        $real_favicon->setArchive($zip_path);
+        $entity->setArchive($zip_path);
       }
-      catch (Exception $e) {
+      catch (\Exception $e) {
         $form_state->setErrorByName('file', $e->getMessage());
         return;
       }
     }
 
-    $status = $real_favicon->save();
+    $status = $entity->save();
 
     switch ($status) {
       case SAVED_NEW:
-        drupal_set_message($this->t('Created the %label Favicon.', [
-          '%label' => $real_favicon->label(),
+        \Drupal::messenger()->addMessage($this->t('Created the %label Favicon.', [
+          '%label' => $entity->label(),
         ]));
         break;
 
       default:
-        drupal_set_message($this->t('Saved the %label Favicon.', [
-          '%label' => $real_favicon->label(),
+        \Drupal::messenger()->addMessage($this->t('Saved the %label Favicon.', [
+          '%label' => $entity->label(),
         ]));
     }
-    $form_state->setRedirectUrl($real_favicon->urlInfo('collection'));
+    $form_state->setRedirectUrl($entity->toUrl('collection'));
   }
 
 }
