@@ -36,7 +36,7 @@ function real_favicon_page_attachments_alter(array &$attachments) {
       foreach ($attachments['#attached']['html_head_link'] as $i => $item) {
         if (!empty($item) && is_array($item)) {
           foreach ($item as $ii => $iitem) {
-            if (isset($iitem['rel']) && $iitem['rel'] == 'shortcut icon') {
+            if (isset($iitem['rel']) && in_array($iitem['rel'], ['shortcut icon', 'icon'])) {
               unset($attachments['#attached']['html_head_link'][$i][$ii]);
             }
           }
